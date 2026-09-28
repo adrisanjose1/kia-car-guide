@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#fff7fb" />
+  <title>KIA SOUL — Learn & Play</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app" class="app"></main>
+  <script src="sprites.js"></script>
+  <script src="sounds.js"></script>
+  <script>
+  /*
+    KIA SOUL 2015 — photographic flashcard app
+    Language: Mexican Spanish UI, English component names.
+    Images: the user's own Kia Soul interior photos (assets/).
+    Hotspot boxes were derived by diffing each "highlighted" reference
+    photo against its matching base photo (pixel-level), then verified
+    by eye against the real photo, so every hotspot lines up with the
+    actual part in that photo instead of a hand-guessed shape.
+  */
+
+  const SCENES = {
+    wheel: {image:'assets/wheel.jpg', w:800, h:600, title:'Steering Wheel Area'},
+    console: {image:'assets/console.jpg', w:800, h:600, title:'Center Stack'},
+    shifter: {image:'assets/shifter.jpg', w:800, h:600, title:'Gear Shifter Console'},
+    cabin: {image:'assets/cabin.jpg', w:800, h:600, title:'Full Cabin'},
+    dash: {image:'assets/dash.jpg', w:1400, h:1050, title:'Driver Dashboard'},
+    side: {image:'assets/side.jpg', w:1400, h:1050, title:'Cabin Wide View'},
+    cluster: {image:'assets/cluster.jpg', w:1400, h:607, title:'Instrument Cluster'},
+  };
+
+  const CARDS = [
+    {id:1, section:'interior', scene:'wheel', name:'Steering Wheel', explanation:'Te ayuda a dirigir el carro hacia la izquierda o la derecha.', box:[28.25,64.38,7.5,56.67]},
+    {id:2, section:'interior', scene:'wheel', name:'Fuse Panel Cover', explanation:'Cubre los fusibles que protegen los circuitos eléctricos del carro.', box:[4.88,20.38,60.0,78.5]},
+    {id:3, section:'interior', scene:'wheel', name:'Brake Pedal', explanation:'Al presionarlo, el carro disminuye la velocidad o se detiene.', box:[22.0,29.12,82.17,99.83]},
+    {id:4, section:'interior', scene:'wheel', name:'Dimmer / ESC Off Switches', explanation:'Ajustan el brillo del tablero o desactivan el control de estabilidad.', box:[13.38,19.5,48.33,55.33]},
+    {id:5, section:'interior', scene:'wheel', name:'Accelerator Pedal', explanation:'Al presionarlo, el motor aumenta la fuerza para avanzar más rápido.', box:[13.25,21.88,87.67,97.33]},
+    {id:6, section:'interior', scene:'console', name:'Climate Mode Button', explanation:'Elige hacia dónde sale el aire: cara, pies, parabrisas o combinaciones.', box:[59.12,67.88,52.33,58.67]},
+    {id:7, section:'interior', scene:'console', name:'Front Defrost Button', explanation:'Dirige aire caliente al parabrisas delantero para desempañarlo.', box:[36.12,45.5,54.0,61.67]},
+    {id:8, section:'interior', scene:'console', name:'Tune / Enter Knob', explanation:'Gira para buscar estaciones o navegar los menús del sistema de audio.', box:[68.88,74.0,35.83,42.5]},
+    {id:9, section:'interior', scene:'console', name:'Climate Power / Recirculation Button', explanation:'Enciende el clima o recircula el aire interior en vez de tomar aire de afuera.', box:[59.0,63.0,59.33,65.67]},
+    {id:10, section:'interior', scene:'console', name:'Fan Speed Button', explanation:'Ajusta qué tan fuerte circula el aire dentro del carro.', box:[25.25,36.25,55.17,71.17]},
+    {id:11, section:'interior', scene:'console', name:'Rear Defroster Button', explanation:'Ayuda a quitar humedad o hielo de la ventana trasera.', box:[33.5,45.25,61.5,70.33]},
+    {id:12, section:'interior', scene:'console', name:'Auto Climate Dial', explanation:'Gira este control para subir o bajar la temperatura automáticamente.', box:[48.88,59.0,52.83,69.67]},
+    {id:13, section:'interior', scene:'console', name:'Climate On/Off Button', explanation:'Enciende o apaga por completo el sistema de clima.', box:[63.12,67.88,58.0,64.67]},
+    {id:14, section:'interior', scene:'console', name:'A/C Button', explanation:'Enciende o apaga el aire acondicionado.', box:[56.88,64.62,52.5,58.83]},
+    {id:15, section:'interior', scene:'console', name:'Touchscreen Display', explanation:'Muestra el radio, la hora y las opciones de conectividad del carro.', box:[25.12,70.5,3.0,46.0]},
+    {id:16, section:'interior', scene:'shifter', name:'Shift Position Display', explanation:'Muestra en qué posición está la transmisión: Park, Reversa, Neutral o Drive.', box:[36.62,55.88,45.0,79.0]},
+    {id:17, section:'interior', scene:'shifter', name:'12V Power Outlet Panel', explanation:'Permite conectar accesorios eléctricos compatibles de 12 voltios.', box:[16.12,36.12,22.67,38.17]},
+    {id:18, section:'interior', scene:'shifter', name:'Gear Shifter Knob', explanation:'Selecciona la posición de la transmisión para mover el carro.', box:[39.5,65.88,16.17,78.5]},
+    {id:19, section:'interior', scene:'cabin', name:'Parking Brake Handle', explanation:'Mantiene el carro detenido cuando está estacionado.', box:[22.88,39.25,70.5,89.67]},
+    {id:20, section:'interior', scene:'cabin', name:'Audio Volume Knob', explanation:'Gira para subir o bajar el volumen del sistema de audio.', box:[53.88,67.0,35.17,43.0]},
+    {id:21, section:'interior', scene:'cabin', name:'Ignition Key Cylinder', explanation:'Aquí se inserta la llave para encender el motor.', box:[39.62,44.12,31.33,36.5]},
+    {id:22, section:'interior', scene:'cabin', name:'Center Console & Cup Holders', explanation:'Espacio de almacenamiento y sostiene vasos o botellas.', box:[24.5,46.62,82.33,99.83]},
+    {id:23, section:'interior', scene:'cabin', name:'Driver Door Handle', explanation:'Se usa para abrir la puerta del conductor desde adentro.', box:[5.25,19.38,33.5,37.33]},
+    {id:24, section:'interior', scene:'dash', name:'Cruise Control Buttons', explanation:'Si está equipado, ayuda a mantener una velocidad seleccionada sin usar el acelerador.', box:[52.94,59.69,59.0,67.58]},
+    {id:25, section:'interior', scene:'dash', name:'Hazard Warning Button', explanation:'Activa las luces intermitentes para avisar de una situación de emergencia.', box:[73.88,77.0,32.33,37.5]},
+    {id:26, section:'interior', scene:'dash', name:'Infotainment System', explanation:'Sistema central de audio, teléfono y navegación del carro.', box:[68.94,83.38,44.58,55.67]},
+    {id:27, section:'interior', scene:'dash', name:'Instrument Cluster', explanation:'Aquí ves información como velocidad, combustible y luces de advertencia.', box:[33.0,49.69,37.33,52.75]},
+    {id:28, section:'interior', scene:'dash', name:'Steering Wheel Audio Controls', explanation:'Permiten controlar algunas funciones de audio desde el volante.', box:[18.06,28.56,68.08,77.5]},
+    {id:29, section:'interior', scene:'dash', name:'Turn Signal Stalk', explanation:'Indica a los demás que vas a dar vuelta o cambiar de carril.', box:[19.25,32.94,56.75,60.42]},
+    {id:30, section:'interior', scene:'dash', name:'Driver Airbag Module', explanation:'Protege al conductor en ciertas colisiones.', box:[22.38,53.5,54.92,98.67]},
+    {id:31, section:'interior', scene:'dash', name:'Wiper / Washer Stalk', explanation:'Controla los limpiaparabrisas y ayuda a limpiar el parabrisas.', box:[54.56,61.56,53.0,56.83]},
+    {id:32, section:'interior', scene:'side', name:'Passenger Door Handle', explanation:'Permite abrir la puerta del pasajero desde adentro.', box:[76.75,84.75,18.83,24.83]},
+    {id:33, section:'interior', scene:'side', name:'Dashboard Speaker', explanation:'Bocina integrada en el tablero para el sistema de audio.', box:[21.81,40.38,11.5,16.33]},
+    {id:34, section:'cluster', scene:'cluster', name:'Seatbelt Warning Light', explanation:'Se enciende cuando un cinturón de seguridad no está abrochado.', box:[39.23,44.01,73.49,84.38]},
+    {id:35, section:'cluster', scene:'cluster', name:'Door Ajar Warning Light', explanation:'Indica que una puerta no está bien cerrada.', box:[43.22,48.0,73.73,84.75]},
+    {id:36, section:'cluster', scene:'cluster', name:'Check Engine Light', explanation:'Puede indicar que el motor necesita revisión.', box:[47.16,51.89,74.33,85.23]},
+    {id:37, section:'cluster', scene:'cluster', name:'Battery Charge Warning Light', explanation:'Avisa que hay un problema con la carga de la batería.', box:[51.37,56.09,74.09,85.11]},
+    {id:38, section:'cluster', scene:'cluster', name:'Key / Immobilizer Warning Light', explanation:'Se relaciona con el sistema de seguridad de la llave del carro.', box:[55.67,60.4,74.09,85.11]},
+    {id:39, section:'cluster', scene:'cluster', name:'High Beam Indicator', explanation:'Se enciende cuando las luces altas están activadas.', box:[69.96,74.68,38.98,49.88]},
+    {id:40, section:'cluster', scene:'cluster', name:'Front Fog Light Indicator', explanation:'Se enciende cuando las luces antiniebla delanteras están activas.', box:[69.8,74.53,44.43,55.45]},
+    {id:41, section:'cluster', scene:'cluster', name:'Rear Fog Light Indicator', explanation:'Se enciende cuando la luz antiniebla trasera está activa.', box:[70.01,74.74,49.64,60.53]},
+    {id:42, section:'cluster', scene:'cluster', name:'Oil Pressure Warning Light', explanation:'Avisa sobre un problema con la presión de aceite del motor.', box:[69.8,74.53,54.96,65.98]},
+    {id:43, section:'cluster', scene:'cluster', name:'Passenger Airbag Indicator', explanation:'Muestra si la bolsa de aire del pasajero está activa o desactivada.', box:[68.49,73.21,67.31,78.33]},
+    {id:44, section:'cluster', scene:'cluster', name:'ECO Mode Indicator', explanation:'Se enciende cuando conduces de manera más eficiente en combustible.', box:[73.53,78.26,73.24,84.14]},
+    {id:45, section:'cluster', scene:'cluster', name:'Low Fuel Warning Light', explanation:'Avisa que el combustible está por agotarse.', box:[73.27,77.99,79.18,90.07]},
+    {id:46, section:'cluster', scene:'cluster', name:'ISG Indicator', explanation:'Muestra cuándo el sistema de apagado automático del motor está activo.', box:[77.21,81.99,72.88,83.78]},
+    {id:47, section:'cluster', scene:'cluster', name:'ESC Off Indicator', explanation:'Se enciende cuando el control electrónico de estabilidad está desactivado.', box:[75.47,80.2,64.41,75.3]},
+    {id:48, section:'cluster', scene:'cluster', name:'Coolant Temperature Warning', explanation:'Avisa si el motor se está calentando demasiado.', box:[76.05,80.83,54.36,65.25]},
+    {id:49, section:'cluster', scene:'cluster', name:'Low Fuel Gauge Icon', explanation:'Ícono que aparece junto al medidor cuando el combustible es bajo.', box:[88.03,92.75,74.58,85.47]},
+    {id:50, section:'cluster', scene:'cluster', name:'AFLS Indicator', explanation:'Se relaciona con el sistema adaptativo de luces delanteras, si está equipado.', box:[76.68,81.41,30.63,41.53]},
+    {id:51, section:'cluster', scene:'cluster', name:'4WD Lock Indicator', explanation:'Si está equipado, muestra que el sistema de tracción está bloqueado.', box:[81.2,85.92,34.5,45.4]},
+    {id:52, section:'cluster', scene:'cluster', name:'Trailer Mode Indicator', explanation:'Si está equipado, muestra que el modo de remolque está activo.', box:[90.55,95.27,35.84,46.85]},
+    {id:53, section:'cluster', scene:'cluster', name:'LPG Fuel Gauge', explanation:'Muestra el nivel de combustible en versiones equipadas con gas LP.', box:[24.0,28.73,79.78,90.68]},
+    {id:54, section:'cluster', scene:'cluster', name:'Auto Hold Indicator', explanation:'Muestra que el freno automático está manteniendo el carro detenido.', box:[21.17,25.0,77.24,86.2]},
+    {id:55, section:'cluster', scene:'cluster', name:'Drive System Indicator', explanation:'Se relaciona con el sistema de tracción o transmisión del vehículo.', box:[21.53,25.42,66.59,75.54]},
+    {id:56, section:'cluster', scene:'cluster', name:'Downhill Brake Control Indicator', explanation:'Si está equipado, ayuda a controlar la velocidad al bajar pendientes.', box:[18.59,22.48,67.68,76.63]},
+    {id:57, section:'cluster', scene:'cluster', name:'Stability Control Indicator', explanation:'Se relaciona con el sistema de control de estabilidad del vehículo.', box:[16.18,20.06,48.79,57.63]},
+    {id:58, section:'cluster', scene:'cluster', name:'Speedometer', explanation:'Muestra la velocidad del vehículo.', box:[4.36,95.59,25.91,41.77]},
+    {id:59, section:'cluster', scene:'cluster', name:'Tachometer', explanation:'Muestra las revoluciones por minuto del motor.', box:[30.2,69.75,9.93,99.88]},
+    {id:60, section:'cluster', scene:'cluster', name:'Trip Computer Display', explanation:'Muestra el kilometraje, temperatura exterior y otros datos de viaje.', box:[6.57,48.11,19.98,94.92]},
+    {id:61, section:'cluster', scene:'cluster', name:'Temperature Gauge', explanation:'Muestra qué tan caliente está el motor.', box:[23.84,93.38,18.16,82.2]},
+    {id:62, section:'cluster', scene:'cluster', name:'Fuel Gauge', explanation:'Indica cuánto combustible queda en el tanque.', box:[23.84,91.39,18.16,88.26]},
+  ];
+
+  function cardsForSection(section){ return CARDS.filter(c=>c.section===section); }
+  function cardsForScene(scene){ return CARDS.filter(c=>c.scene===scene); }
+
+  // Build a rounded-rect SVG path from a [x0,x1,y0,y1] percentage box.
+  // A little outward padding makes the hit/outline area comfortable to tap.
+  function shapeFor(p){
+    let [x0,x1,y0,y1] = p.box;
+    const pad = 1.6;
+    x0 = Math.max(0, x0-pad); y0 = Math.max(0, y0-pad);
+    x1 = Math.min(100, x1+pad); y1 = Math.min(100, y1+pad);
+    const r = Math.min(4, (x1-x0)/2, (y1-y0)/2);
+    return `M ${x0+r} ${y0} L ${x1-r} ${y0} Q ${x1} ${y0} ${x1} ${y0+r} L ${x1} ${y1-r} Q ${x1} ${y1} ${x1-r} ${y1} L ${x0+r} ${y1} Q ${x0} ${y1} ${x0} ${y1-r} L ${x0} ${y0+r} Q ${x0} ${y0} ${x0+r} ${y0} Z`;
+  }
+  function svgOverlay(p, mode='hidden', sceneCards=[]){
+    const target = shapeFor(p);
+    const others = sceneCards.filter(q=>q.id!==p.id).map(q=>
+      `<path class="svg-hit other" d="${shapeFor(q)}" data-action="wrongPick" aria-label="possible part"></path>`).join('');
+    const visible = mode==='visible' ? `<path class="svg-outline" d="${target}"></path>` : '';
+    const targetHit = `<path class="svg-hit target" d="${target}" data-action="${mode==='exam'?'pick':'reviewAnswer'}" aria-label="${esc(p.name)}"></path>`;
+    return `<svg class="hotspot-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${others}${targetHit}${visible}</svg>`;
+  }
+  function arStyle(scene){ const s=SCENES[scene]; return `--ar:${s.w}/${s.h}`; }
+
+  const SECTION_INFO = {
+    interior: {label:'Interior del Auto', emoji:'\ud83d\ude97', hero:'dash', tagline:'Controles, botones y partes del interior.'},
+    cluster:  {label:'Tablero (Cluster)', emoji:'\ud83d\udcca', tagline:'Medidores y luces de advertencia del tablero.', hero:'cluster'}
+  };
+
+  let state = {screen:'home', section:null, mode:null, reviewIndex:0, examIndex:0, score:0, hearts:3, mistakes:[], selected:null, countdown:false, search:'', answerLocked:false, examOrder:[]};
+  const app = document.getElementById('app');
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"\']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  function play(name){ try { if(window.Sound && Sound[name]) Sound[name](); } catch(e){} }
+  function icon(name){const icons={wheel:'\u25c9',search:'\u2315',book:'\u25a4',play:'\u25b6',heart:'\u2665',back:'\u2190',home:'\u2302',info:'i',check:'\u2713',x:'\u00d7',spark:'\u2726'};return icons[name]||'\u2022';}
+  function home(){state.screen='home';state.section=null;state.mode=null;state.search='';render();}
+  function pickSection(section){state.section=section;state.screen='modes';state.reviewIndex=0;state.mistakes=[];render();play('pageForward');}
+  function backToModes(){state.screen='modes';render();}
+  function topbar(title,right=''){return `<header class="topbar"><button class="icon-btn" data-action="${state.screen==='modes'?'home':'backToModes'}">${icon('back')}</button><div><div class="brand-mini">KIA SOUL <span>2015</span></div><h1>${title}</h1></div><div class="top-right">${right}</div></header>`;}
+
+  function renderHome(){
+    app.innerHTML=`<section class="home-screen">
+      <div class="brand-mark"><span class="kia">KIA</span><span class="soul">soul</span></div><div class="home-badge">2015</div>
+      <h1>Explora. Toca. Aprende.</h1><p class="lead">Elige qué parte de tu Kia Soul quieres estudiar.</p>
+      <div class="hero-photo"><img src="${SCENES.dash.image}" alt="2015 Kia Soul interior"/><div class="photo-sheen"></div></div>
+      <div class="section-grid">
+        <button class="section-card" data-action="pickSection" data-section="interior"><span class="section-emoji">\ud83d\ude97</span><strong>Interior del Auto</strong><small>${cardsForSection('interior').length} tarjetas · botones, controles y partes</small></button>
+        <button class="section-card" data-action="pickSection" data-section="cluster"><span class="section-emoji">\ud83d\udcca</span><strong>Tablero (Cluster)</strong><small>${cardsForSection('cluster').length} tarjetas · medidores y luces</small></button>
+      </div>
+      <div class="home-stats"><span>\ud83c\udfb4 ${CARDS.length} tarjetas en total</span><span>\u2764\ufe0f 3 vidas</span><span>\ud83c\uddf2\ud83c\uddfd Espa\u00f1ol</span></div>
+    </section>`;
+  }
+
+  function renderModes(){
+    const info = SECTION_INFO[state.section];
+    const pool = cardsForSection(state.section);
+    app.innerHTML=`<section class="home-screen">
+      <button class="icon-btn" data-action="home" style="position:absolute;left:16px;top:16px">${icon('back')}</button>
+      <div class="section-pill">${info.emoji} ${info.label}</div>
+      <h1>${info.label}</h1><p class="lead">${info.tagline}</p>
+      <div class="hero-photo"><img src="${SCENES[info.hero].image}" alt="${info.label}"/><div class="photo-sheen"></div></div>
+      <div class="mode-grid">
+        <button class="mode-card review" data-action="review"><div class="stack-cards"><span></span><span></span><span></span></div><strong>RESE\u00d1A</strong><small>Toca una parte, res\u00e1ltala y aprende qu\u00e9 hace.</small></button>
+        <button class="mode-card exam" data-action="exam"><div class="exam-icon">?</div><strong>EXAMEN</strong><small>Encuentra la parte correcta antes de pasar a la siguiente.</small></button>
+      </div>
+      <div class="home-stats"><span>\ud83c\udfb4 ${pool.length} tarjetas</span><span>\u2764\ufe0f 3 vidas</span><span>\ud83c\uddf2\ud83c\uddfd Espa\u00f1ol</span></div>
+      <button class="secondary-btn" data-action="mistakes">Review all the mistakes <span>\u2192</span></button>
+    </section>`;
+  }
+
+  function renderReview(){
+    const pool = cardsForSection(state.section);
+    const p=pool[state.reviewIndex%pool.length], s=SCENES[p.scene], sceneCards=cardsForScene(p.scene);
+    app.innerHTML=`<section class="page"><div class="review-header">${topbar('RESE\u00d1A',`<span class="progress-pill">${state.reviewIndex+1}/${pool.length}</span>`)}</div>
+      <div class="hint">Toca la parte en la foto. Se resaltar\u00e1 y aparecer\u00e1 su explicaci\u00f3n.</div>
+      <div class="review-stage">
+        <div class="photo-frame scene-${p.scene}" style="${arStyle(p.scene)}"><img src="${s.image}" alt="${s.title}"/>${svgOverlay(p,'hidden',sceneCards)}<div class="scene-label">${s.title}</div></div>
+        <div class="review-card"><div class="card-number">TARJETA ${state.reviewIndex+1}</div><h2>Find the <span>${esc(p.name)}</span></h2><p>Tap the part in the photo.</p><button class="yellow-btn" data-action="nextReview">Siguiente <span>\u2192</span></button></div>
+      </div><div class="bottom-nav"><button data-action="home">${icon('home')} Inicio</button><button class="active">${icon('book')} Rese\u00f1a</button><button data-action="exam">${icon('play')} Examen</button></div></section>`;
+  }
+
+  function showExplanation(p){
+    play('correct'); const s=SCENES[p.scene];
+    const overlay=document.createElement('div'); overlay.className='explain-overlay';
+    overlay.innerHTML=`<div class="cloud-backdrop"></div><div class="explain-photo" style="${arStyle(p.scene)}"><img src="${s.image}" alt="${s.title}"/>${svgOverlay(p,'visible',cardsForScene(p.scene))}</div><div class="cloud-card"><div class="cloud-face">\u2601\ufe0f</div><div class="cloud-body"><div class="mini-tag">${esc(s.title)}</div><h2>${esc(p.name)}</h2><p>${esc(p.explanation)}</p><button class="yellow-btn" data-action="closeExplanation">Tap to exit</button></div></div>`;
+    document.body.appendChild(overlay);
+  }
+
+  function renderExam(){
+    const pool = cardsForSection(state.section);
+    const p=currentExamPart(),s=SCENES[p.scene],cardNum=state.examIndex+1,sceneCards=cardsForScene(p.scene);
+    app.innerHTML=`<section class="page exam-page"><div class="topbar">${topbar('EXAMEN',`<div class="exam-meta"><span class="progress-pill">${cardNum}/${pool.length}</span><span class="hearts">${'\u2665'.repeat(state.hearts)}${'\u2661'.repeat(3-state.hearts)}</span></div>`)}</div>
+      <div class="game-photo photo-frame scene-${p.scene}" style="${arStyle(p.scene)}"><img src="${s.image}" alt="${s.title}"/>${svgOverlay(p,'exam',sceneCards)}<div class="scene-label">${s.title}</div></div>
+      <div class="question-card" data-card="${cardNum}"><div class="drag-handle"></div><div class="question-small">FIND THIS PART</div><div class="question-name">${esc(p.name)}</div></div>
+      <div class="exam-tip">Tap the correct part in the photo.</div>
+      <div class="bottom-nav"><button data-action="home">${icon('home')} Inicio</button><button data-action="review">${icon('book')} Rese\u00f1a</button><button class="active">${icon('play')} Examen</button></div></section>`;
+  }
+
+  function startExam(){const pool=cardsForSection(state.section);const shuffled=[...Array(pool.length).keys()];for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}state.examOrder=shuffled;state.examIndex=0;state.score=0;state.hearts=3;state.mistakes=[];state.screen='countdown';renderCountdown();}
+  function renderCountdown(){app.innerHTML=`<div class="countdown-screen"><div class="count-label">PREP\u00c1RATE</div><div id="count-number">3</div><div class="count-go">FIND THE PART</div></div>`;let n=3;play('countdown');const timer=setInterval(()=>{n--;if(n>0){$('#count-number').textContent=n;play('tick');}else{clearInterval(timer);$('#count-number').textContent='GO!';play('next');setTimeout(()=>{state.screen='exam';render();},650);}},850);}
+  function currentExamPart(){const pool=cardsForSection(state.section);return pool[state.examOrder?.[state.examIndex] ?? state.examIndex];}
+
+  function answerExam(){
+    if(state.answerLocked)return; state.answerLocked=true; const p=currentExamPart(); state.score++; play('correct');
+    const phrase=['\u00a1Correcto!','\u00a1Genial!','\u00a1Ang galing!'][Math.floor(Math.random()*3)]; const card=document.querySelector('.question-card');
+    if(card) card.classList.add('card-drop'); explodeHearts(document.body);
+    const feedback=document.createElement('div');feedback.className='feedback correct feedback-lite';feedback.innerHTML=`<div class="praise">${phrase}</div>`;document.body.appendChild(feedback);
+    setTimeout(()=>{feedback.remove();nextExam();},850);
+  }
+  function wrongExam(){
+    if(state.answerLocked)return;state.answerLocked=true;state.hearts=Math.max(0,state.hearts-1);const p=currentExamPart();if(!state.mistakes.find(x=>x.id===p.id))state.mistakes.push(p);play('wrong');
+    const feedback=document.createElement('div');feedback.className='feedback wrong feedback-lite';feedback.innerHTML=`<div class="wrong-bubble">Try again!<small>${esc(p.name)}</small></div>`;document.body.appendChild(feedback);
+    setTimeout(()=>{feedback.remove();state.answerLocked=false;render();},700);
+  }
+  function nextExam(){const pool=cardsForSection(state.section);if(state.hearts===0||state.examIndex>=pool.length-1){state.screen='results';renderResults();return;}state.examIndex++;state.answerLocked=false;render();play('next');}
+  function renderResults(){const pool=cardsForSection(state.section);app.innerHTML=`<section class="results page">${topbar('RESULTADO')}<div class="result-card"><div class="result-emoji">\ud83c\udfc1</div><h2>\u00a1Terminaste!</h2><div class="result-score">${state.score}/${Math.min(pool.length,state.examIndex+1)}</div><p>Acertaste ${state.score} tarjetas.</p><button class="yellow-btn" data-action="exam">Jugar otra vez</button>${state.mistakes.length?`<button class="secondary-btn" data-action="mistakes">Review all the mistakes (${state.mistakes.length}) \u2192</button>`:''}</div></section>`;}
+  function renderMistakes(){const pool=cardsForSection(state.section);const list=state.mistakes.length?state.mistakes:pool.slice(0,8);app.innerHTML=`<section class="page">${topbar('Review all the mistakes',`<span class="progress-pill">${state.mistakes.length} mistakes</span>`)}<p class="mistake-sub">Toca una tarjeta para ver la parte resaltada y recordar su funci\u00f3n.</p><div class="mistake-grid">${list.map(p=>`<button class="mistake-card" data-action="mistakeOpen" data-id="${p.id}"><span class="mistake-icon">\u2601\ufe0f</span><span>${esc(p.name)}</span><small>Tap to review</small></button>`).join('')}</div><div class="bottom-nav"><button data-action="home">${icon('home')} Inicio</button><button data-action="review">${icon('book')} Rese\u00f1a</button><button data-action="exam">${icon('play')} Examen</button></div></section>`;}
+  function openMistake(id){const p=CARDS.find(x=>x.id===id)||CARDS[0],s=SCENES[p.scene];const overlay=document.createElement('div');overlay.className='explain-overlay mistake-overlay';overlay.innerHTML=`<div class="cloud-backdrop"></div><div class="explain-photo" style="${arStyle(p.scene)}"><img src="${s.image}" alt="${s.title}"/>${svgOverlay(p,'visible',cardsForScene(p.scene))}</div><div class="cloud-card"><div class="cloud-face">\u2601\ufe0f</div><div class="cloud-body"><div class="mini-tag">REVIEW</div><h2>${esc(p.name)}</h2><p>${esc(p.explanation)}</p><button class="yellow-btn" data-action="closeExplanation">Tap to exit</button></div></div>`;document.body.appendChild(overlay);play('pageForward');}
+  function render(){if(state.screen==='home')return renderHome();if(state.screen==='modes')return renderModes();if(state.screen==='review')return renderReview();if(state.screen==='exam')return renderExam();if(state.screen==='results')return renderResults();if(state.screen==='mistakes')return renderMistakes();}
+  function explodeHearts(root){for(let i=0;i<18;i++){const s=document.createElement('span');s.className='heart-pop';s.textContent=Math.random()>.3?'\u2665':'\u2726';s.style.setProperty('--x',`${(Math.random()-.5)*360}px`);s.style.setProperty('--y',`${-80-Math.random()*260}px`);s.style.setProperty('--r',`${(Math.random()-.5)*90}deg`);root.appendChild(s);setTimeout(()=>s.remove(),1200);}}
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;if(a==='home'){home();play('pageBack');}else if(a==='pickSection'){pickSection(el.dataset.section);}else if(a==='backToModes'){backToModes();play('pageBack');}else if(a==='review'){state.screen='review';state.reviewIndex=0;render();play('pageForward');}else if(a==='nextReview'){const pool=cardsForSection(state.section);state.reviewIndex=(state.reviewIndex+1)%pool.length;render();play('next');}else if(a==='reviewAnswer'){const pool=cardsForSection(state.section);const p=pool[state.reviewIndex%pool.length];showExplanation(p);}else if(a==='closeExplanation'){el.closest('.explain-overlay')?.remove();}else if(a==='exam'){startExam();}else if(a==='pick'){answerExam();}else if(a==='wrongPick'){wrongExam();}else if(a==='mistakes'){state.screen='mistakes';render();}else if(a==='mistakeOpen'){openMistake(Number(el.dataset.id));}});
+  renderHome();
+  </script>
+</body>
+</html>
