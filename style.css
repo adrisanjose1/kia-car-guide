@@ -1,0 +1,123 @@
+/* KIA SOUL 2015 flashcards — styles
+   Sections: base · home · viewer · popups · exam feedback · countdown */
+
+/* ===== base ===== */
+:root{--pink:#ff86aa;--hot:#ff5f80;--yellow:#ffd94f;--ink:#40333a;--shadow:0 18px 40px rgba(130,55,85,.16)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:'Baloo 2',system-ui,sans-serif;color:var(--ink);background:#fff7fb}
+body.cam{overflow:hidden;background:#000}
+button{font:inherit;cursor:pointer;border:0}
+
+.yellow-btn{background:var(--yellow);color:#4e3f25;border-radius:17px;padding:11px 18px;font-weight:900;box-shadow:0 7px 16px rgba(255,217,79,.25)}
+.secondary-btn{background:#fff;border:2px solid #ffd2df;border-radius:18px;padding:12px 18px;color:#db5b7c;font-weight:800;box-shadow:0 8px 20px rgba(130,55,85,.08)}
+.progress-pill{background:#fff;border:2px solid #ffd2df;border-radius:999px;padding:5px 13px;font-weight:800;color:#d75578}
+.hearts{color:#ff5579;letter-spacing:2px;font-size:1.2rem}
+.mini-tag,.question-small{font-size:.72rem;letter-spacing:1px;color:#a27c89;font-weight:900}
+
+/* ===== home: blank page, two buttons ===== */
+.home{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px}
+.big-btn{width:min(320px,80vw);padding:20px 24px;border-radius:26px;font-size:1.7rem;font-weight:900;box-shadow:var(--shadow);transition:transform .15s}
+.big-btn:hover{transform:translateY(-3px)}
+.big-btn.review{background:var(--yellow);color:#4e3f25}
+.big-btn.exam{background:var(--hot);color:#fff}
+
+/* ===== full-screen look-around viewer ===== */
+.viewer{position:fixed;inset:0;overflow:hidden;background:#000;z-index:1;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;-webkit-tap-highlight-color:transparent}
+.viewer:active{cursor:grabbing}
+.world{position:absolute;left:0;top:0;will-change:transform}
+/* the world = blurred extension (.pad) with the sharp 800x600-shaped photo (.photo) centred on top.
+   masks live inside .photo, so they always line up with the photo */
+.pad{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.photo{position:absolute}
+.photo .base{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;pointer-events:none;-webkit-user-drag:none;
+  /* fade only the photo's outer edge into the blurred extension */
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 var(--feather),#000 calc(100% - var(--feather)),transparent),linear-gradient(to bottom,transparent,#000 var(--feather),#000 calc(100% - var(--feather)),transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent,#000 var(--feather),#000 calc(100% - var(--feather)),transparent),linear-gradient(to bottom,transparent,#000 var(--feather),#000 calc(100% - var(--feather)),transparent);
+  mask-composite:intersect}
+
+/* peripheral blur + vignette: sharp in the middle, soft toward the edges */
+.fov{position:absolute;inset:0;pointer-events:none;z-index:6;-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);
+  -webkit-mask-image:radial-gradient(ellipse 68% 62% at 50% 50%,transparent 52%,#000 100%);mask-image:radial-gradient(ellipse 68% 62% at 50% 50%,transparent 52%,#000 100%)}
+.fov-dark{position:absolute;inset:0;pointer-events:none;z-index:7;background:radial-gradient(ellipse 75% 70% at 50% 50%,transparent 60%,rgba(0,0,0,.38) 100%)}
+
+/* 50% transparent yellow part highlights (png masks, or a plain box when a part has no mask yet) */
+.hl-img,.hl-box{position:absolute;pointer-events:none;opacity:0;transition:opacity .2s;z-index:2}
+.hl-img{inset:0;width:100%;height:100%;object-fit:fill;user-select:none;-webkit-user-drag:none}
+.hl-box{background:#ffd94f;border-radius:8px}
+.hl-img.on,.hl-box.on{opacity:.5}
+.hl-img.focus,.hl-box.focus{opacity:.78}
+
+.hud{position:absolute;left:14px;top:calc(14px + env(safe-area-inset-top));z-index:9;max-width:calc(100vw - 90px);background:rgba(13,25,38,.7);color:#fff;border-radius:999px;padding:6px 14px;font-weight:800;font-size:.95rem;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud:empty{display:none}
+.hud .h{color:#ff6e91;letter-spacing:1px}
+.look-hint{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9;background:rgba(13,25,38,.72);color:#fff;border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:700;pointer-events:none;transition:opacity .5s;white-space:nowrap}
+.look-hint.gone{opacity:0}
+.look-hint.above{bottom:calc(88px + env(safe-area-inset-bottom))}   /* lifted when the ¿Sigamos? button is showing */
+.sel-pill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:10;background:#ffd94f;color:#4e3f25;font-weight:900;border-radius:999px;padding:7px 16px;font-size:.95rem;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.sel-pill.on{opacity:1}
+
+.fab{position:fixed;z-index:30;right:max(14px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.88);color:#7a6570;font-size:1.4rem;font-weight:900;box-shadow:0 6px 18px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent}
+.next-btn{position:fixed;z-index:30;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom));padding:14px 30px;border-radius:999px;font-size:1.25rem;box-shadow:0 10px 26px rgba(0,0,0,.35)}
+
+/* ===== popups (menu, "find this part", explanations, mistakes, results) ===== */
+.explain-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px}
+.explain-overlay.sheet{place-items:end center;padding:0 14px calc(22px + env(safe-area-inset-bottom))}
+.cloud-backdrop{position:absolute;inset:0;background:rgba(20,25,35,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.sheet .cloud-backdrop{background:rgba(29,35,45,.22);-webkit-backdrop-filter:none;backdrop-filter:none}
+
+.pop-card{position:relative;width:min(420px,92vw);background:#fff;border-radius:30px;padding:22px 20px;box-shadow:0 22px 55px rgba(20,25,35,.4);text-align:center;animation:pop .26s ease;max-height:86vh;overflow:auto}
+.pop-card h2{margin:2px 0 4px;color:#ef5f86;font-size:1.8rem}
+.pop-card p{margin:0 0 12px;color:#8d7680}
+.pop-col{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.pop-col .secondary-btn,.pop-col .yellow-btn{width:100%}
+.pop-stat{display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:6px}
+.pop-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;text-align:left}
+.result-score{font-size:3.6rem;font-weight:900;color:#42aee8}
+
+.cloud-card{position:relative;width:min(520px,94vw);max-width:600px;display:flex;align-items:center;gap:10px;animation:pop .28s ease}
+.cloud-face{width:100px;height:78px;display:grid;place-items:center;background:#fff;border-radius:50% 50% 44% 56%;font-size:2.4rem;box-shadow:var(--shadow);flex:none}
+.cloud-body{background:#fff;border-radius:30px 36px 42px 30px;padding:18px 20px;box-shadow:var(--shadow);position:relative}
+.cloud-body:before{content:'';position:absolute;left:-14px;bottom:16px;border-width:10px 16px 10px 0;border-style:solid;border-color:transparent white transparent transparent}
+.cloud-body h2{margin:0;color:#ef5f86;font-size:1.65rem}
+.cloud-body p{font-size:1.05rem;line-height:1.25;margin:5px 0 12px}
+
+.mistake-card{background:#fff;border:2px solid #ffdce6;border-radius:18px;padding:12px;text-align:left;box-shadow:0 9px 22px rgba(100,50,70,.08)}
+.mistake-icon{font-size:1.8rem;display:block}
+.mistake-name{display:block;font-weight:900;font-size:.95rem;color:#ef5f86}
+.mistake-card small{color:#a1808b}
+
+/* ===== exam feedback: try-again bubble, praise word, heart burst ===== */
+.feedback{position:fixed;inset:0;z-index:120;display:grid;place-items:center;pointer-events:none}
+.bubble{background:#fff;border:4px solid #ff9ab2;color:#ef5f86;border-radius:30px;padding:16px 28px;box-shadow:var(--shadow);font-size:2rem;font-weight:900;text-align:center;animation:pop .25s ease}
+.bubble small{display:block;font-size:1rem;color:#8d7680;margin-top:-4px}
+
+.praise{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%) rotate(-5deg);font-family:"Luckiest Guy",cursive;font-size:clamp(2.5rem,10vw,5rem);color:#fff8ec;
+  text-shadow:3px 4px 0 #ff8a6b,5px 6px 0 #ff5f5f,7px 8px 12px rgba(0,0,0,.15);-webkit-text-stroke:2px #ff5f5f;z-index:140;pointer-events:none;white-space:nowrap;animation:praiseIn .7s both}
+.burst{position:fixed;inset:0;pointer-events:none;z-index:150;overflow:hidden}
+.particle{position:absolute;font-size:25px;animation:particlePop 1s ease-out forwards}
+
+/* ===== countdown ===== */
+.countdown-screen{position:fixed;inset:0;background:radial-gradient(circle at center,#fff,#ffdce8);display:grid;place-items:center;text-align:center;z-index:200}
+.count-label{position:absolute;top:32%;font-weight:900;color:#b36d83;letter-spacing:3px}
+.count-go{position:absolute;bottom:30%;font-weight:900;color:#ef5f86}
+#count-number{font-size:clamp(6rem,24vw,13rem);font-weight:900;color:#ef5f86;animation:countPop .75s ease}
+
+@keyframes pop{from{transform:scale(.82) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+@keyframes praiseIn{0%{opacity:0;transform:translate(-50%,-20%) scale(.4) rotate(-15deg)}70%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(-4deg)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes particlePop{0%{transform:translate(0,0) scale(.2);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(1.2);opacity:0}}
+@keyframes countPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+@media(max-width:680px){
+  .cloud-card{align-items:flex-end}
+  .cloud-face{width:76px;height:62px;font-size:1.8rem}
+  .cloud-body{padding:15px}
+  .cloud-body h2{font-size:1.4rem}
+  .bubble{font-size:1.55rem}
+}
+
+/* ===== zoom slider (menu) ===== */
+.zoom-row{margin:8px 0 6px;padding:10px 14px 8px;background:#fff6f9;border:2px solid #ffd2df;border-radius:18px;text-align:left}
+.zoom-title{display:block;font-weight:900;color:#db5b7c;font-size:.95rem;margin-bottom:4px}
+.zoom-slider{width:100%;margin:4px 0;accent-color:#ef5f86;height:28px;cursor:pointer;touch-action:pan-x}
+.zoom-ends{display:flex;justify-content:space-between;font-size:.78rem;font-weight:800;color:#b58a98}
