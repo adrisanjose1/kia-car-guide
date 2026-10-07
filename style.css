@@ -54,7 +54,7 @@ button{font:inherit;cursor:pointer;border:0}
 .look-hint{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9;background:rgba(13,25,38,.72);color:#fff;border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:700;pointer-events:none;transition:opacity .5s;white-space:nowrap}
 .look-hint.gone{opacity:0}
 .look-hint.above{bottom:calc(88px + env(safe-area-inset-bottom))}   /* lifted when the ¿Sigamos? button is showing */
-.sel-pill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:10;background:#ffd94f;color:#4e3f25;font-weight:900;border-radius:999px;padding:7px 16px;font-size:.95rem;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.sel-pill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));z-index:10;background:#ffd94f;color:#4e3f25;font-weight:900;border-radius:999px;padding:7px 16px;font-size:.95rem;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
 .sel-pill.on{opacity:1}
 
 .fab{position:fixed;z-index:30;right:max(14px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.88);color:#7a6570;font-size:1.4rem;font-weight:900;box-shadow:0 6px 18px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent}
@@ -75,10 +75,13 @@ button{font:inherit;cursor:pointer;border:0}
 .pop-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;text-align:left}
 .result-score{font-size:3.6rem;font-weight:900;color:#42aee8}
 
-.cloud-card{position:relative;width:min(520px,94vw);max-width:600px;display:flex;align-items:center;gap:10px;animation:pop .28s ease}
-.cloud-face{width:100px;height:78px;display:grid;place-items:center;background:#fff;border-radius:50% 50% 44% 56%;font-size:2.4rem;box-shadow:var(--shadow);flex:none}
-.cloud-body{background:#fff;border-radius:30px 36px 42px 30px;padding:18px 20px;box-shadow:var(--shadow);position:relative}
-.cloud-body:before{content:'';position:absolute;left:-14px;bottom:16px;border-width:10px 16px 10px 0;border-style:solid;border-color:transparent white transparent transparent}
+.cloud-card{--dudu:132px;--dover:36px;position:relative;width:min(380px,92vw);margin-top:calc(var(--dudu) - var(--dover));animation:pop .28s ease}
+/* Bedu stands on a small comment cloud: head and body above its edge, feet overlapping it (he is in front of the cloud) */
+.cloud-card .gif-face{position:absolute;z-index:2;left:50%;top:calc(var(--dover) - var(--dudu));transform:translateX(-50%);width:var(--dudu);height:var(--dudu)}
+.cloud-body{position:relative;z-index:1;background:#fff;border-radius:34px 40px 38px 42px;padding:calc(var(--dover) + 12px) 20px 16px;text-align:center;filter:drop-shadow(0 14px 22px rgba(130,55,85,.2))}
+.cloud-body:before,.cloud-body:after{content:'';position:absolute;background:#fff;border-radius:50%}
+.cloud-body:before{left:24px;top:-16px;width:50px;height:50px}
+.cloud-body:after{right:28px;top:-10px;width:38px;height:38px}
 .cloud-body h2{margin:0;color:#ef5f86;font-size:1.65rem}
 .cloud-body p{font-size:1.05rem;line-height:1.25;margin:5px 0 12px}
 
@@ -97,21 +100,13 @@ button{font:inherit;cursor:pointer;border:0}
 .burst{position:fixed;inset:0;pointer-events:none;z-index:150;overflow:hidden}
 .particle{position:absolute;font-size:25px;animation:particlePop 1s ease-out forwards}
 
-/* ===== countdown ===== */
-.countdown-screen{position:fixed;inset:0;background:radial-gradient(circle at center,#fff,#ffdce8);display:grid;place-items:center;text-align:center;z-index:200}
-.count-label{position:absolute;top:32%;font-weight:900;color:#b36d83;letter-spacing:3px}
-.count-go{position:absolute;bottom:30%;font-weight:900;color:#ef5f86}
-#count-number{font-size:clamp(6rem,24vw,13rem);font-weight:900;color:#ef5f86;animation:countPop .75s ease}
 
 @keyframes pop{from{transform:scale(.82) translateY(20px);opacity:0}to{transform:none;opacity:1}}
 @keyframes praiseIn{0%{opacity:0;transform:translate(-50%,-20%) scale(.4) rotate(-15deg)}70%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(-4deg)}100%{transform:translate(-50%,-50%) scale(1)}}
 @keyframes particlePop{0%{transform:translate(0,0) scale(.2);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(1.2);opacity:0}}
-@keyframes countPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1)}}
 
 @media(max-width:680px){
-  .cloud-card{align-items:flex-end}
-  .cloud-face{width:76px;height:62px;font-size:1.8rem}
-  .cloud-body{padding:15px}
+  .cloud-card{--dudu:108px;--dover:30px}
   .cloud-body h2{font-size:1.4rem}
   .bubble{font-size:1.55rem}
 }
@@ -121,3 +116,66 @@ button{font:inherit;cursor:pointer;border:0}
 .zoom-title{display:block;font-weight:900;color:#db5b7c;font-size:.95rem;margin-bottom:4px}
 .zoom-slider{width:100%;margin:4px 0;accent-color:#ef5f86;height:28px;cursor:pointer;touch-action:pan-x}
 .zoom-ends{display:flex;justify-content:space-between;font-size:.78rem;font-weight:800;color:#b58a98}
+
+/* ===== shimmer: every highlight on the photo flashes once (rippling left → right); the JS adds .flash to the viewer ===== */
+.hl-img.on,.hl-box.on{--rest:.5}
+.hl-img.focus,.hl-box.focus{--rest:.78}
+@keyframes hlFlash{0%{opacity:var(--rest,0)}45%{opacity:.95}100%{opacity:var(--rest,0)}}
+.viewer.flash .hl-img,.viewer.flash .hl-box{animation:hlFlash 1.3s ease-in-out var(--sd,0s) both}
+@media (prefers-reduced-motion:reduce){.viewer.flash .hl-img,.viewer.flash .hl-box{animation:none}}
+
+/* ===== Dudu GIF in the explanation sheet (replaces the cloud) ===== */
+.gif-face{pointer-events:none}
+.gif-face img{display:block;width:100%;height:100%;object-fit:contain;background:none}
+.dudu-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:3.4rem}
+.viewer{-webkit-touch-callout:none}
+
+/* ===== 3, 2, 1, GO! intro (copied from Sigamos) ===== */
+.intro-scrim{position:fixed;inset:0;z-index:90;background:rgba(255,140,156,.5);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;animation:scrimIn .5s ease both}
+.intro-scrim.out{animation:scrimOut .45s ease forwards;pointer-events:none}
+@keyframes scrimOut{to{opacity:0}}
+.fnf-word{
+  position:relative;font-family:"Luckiest Guy","Baloo 2",cursive;text-transform:uppercase;letter-spacing:.02em;line-height:1;
+  font-size:clamp(2rem,10.4vw,5.6rem);text-align:center;padding:0 10px;white-space:nowrap;
+  animation:fnfPop .9s cubic-bezier(.2,1.4,.4,1) both;
+}
+.fnf-word b{display:block;font-weight:400}
+/* thick black comic outline on a copy of the text BEHIND the colored fill */
+.fnf-word .fo{position:absolute;left:0;right:0;top:0;-webkit-text-stroke:.2em #141414;color:#141414;text-shadow:.05em .09em 0 #141414}
+.fnf-word .ff{position:relative;-webkit-background-clip:text;background-clip:text;color:transparent}
+.fnf-word.ready{transform:rotate(-4deg)}
+.fnf-word.ready .ff{background-image:linear-gradient(90deg,#ff1f1f 0%,#ff2a1a 55%,#ff9a00 100%)}
+.fnf-word.set{transform:rotate(2deg)}
+.fnf-word.set .ff{background-image:linear-gradient(90deg,#fff07a 0%,#ffe13a 50%,#ffb800 100%)}
+.fnf-word.go{font-size:clamp(4rem,22vw,10rem);transform:rotate(-3deg)}
+.fnf-word.go .ff{background-image:linear-gradient(180deg,#3dff3d,#0fd10f)}
+@keyframes fnfPop{
+  0%{opacity:0;scale:.2;translate:0 30px}
+  55%{opacity:1;scale:1.16;translate:0 -6px}
+  75%{scale:.96}
+  100%{opacity:1;scale:1;translate:0 0}
+}
+@keyframes scrimIn{from{opacity:0}to{opacity:1}}
+
+/* ===== Examen identification card: white, red / yellow / blue border (cycles each question) ===== */
+.q-card{--qc:#ff4757;position:fixed;z-index:35;left:50%;bottom:calc(26vh + env(safe-area-inset-bottom));width:min(260px,70vw);
+  background:#fff;border:6px solid var(--qc);border-radius:26px;padding:26px 18px;text-align:center; 
+  box-shadow:0 14px 34px rgba(30,20,40,.28);pointer-events:none;-webkit-user-select:none;user-select:none;
+  transform:translate(-50%,0);opacity:1;animation:qUp 1.2s cubic-bezier(.2,.8,.25,1) both;
+  transition:bottom .8s cubic-bezier(.6,0,.3,1),width .8s cubic-bezier(.6,0,.3,1),padding .8s ease,border-width .8s ease,border-radius .8s ease,opacity .5s ease, min-height .8s ease}
+  min-height:min(340px,48vh); display:flex;flex-direction:column;justify-content:center;
+.q-card *{pointer-events:none}
+.q-card.c0{--qc:#ff4757}
+.q-card.c1{--qc:#ffcb2e}
+.q-card.c2{--qc:#3db5ff}
+@keyframes qUp{from{transform:translate(-50%,calc(100% + 30vh))}to{transform:translate(-50%,0)}}
+.q-tag{font-size:.72rem;letter-spacing:1px;font-weight:900;color:#a27c89;max-height:1.4rem;overflow:hidden;transition:max-height .8s ease,opacity .5s ease}
+.q-name{font-size:1.9rem;line-height:1.05;font-weight:900;color:#3c2e36;margin:4px 0 6px;transition:font-size .8s ease,margin .8s ease}
+.q-help{font-size:.9rem;line-height:1.25;color:#8d7680;max-height:6rem;overflow:hidden;transition:max-height .8s ease,opacity .5s ease,margin .8s ease}
+/* minimised: only the part's name, where the "Arrastra para mirar" hint used to be */
+.q-card.min{bottom:calc(30px + env(safe-area-inset-bottom));width:min(250px,72vw);padding:6px 14px 8px;border-width:4px;border-radius:18px;min-height:0;}
+.q-card.min .q-tag,.q-card.min .q-help{max-height:0;opacity:0;margin:0}
+.q-card.min .q-name{font-size:1.15rem;margin:0}
+.q-card.dim{opacity:.5}      /* 1 s after minimising */
+.q-card.drag{opacity:.2}     /* while the photo is being dragged */
